@@ -4,8 +4,7 @@ from django.conf import settings
 from django.urls import reverse
 
 
-@pytest.mark.django_db
-def test_news_count(client, all_news):
+def test_news_count(client):
     url = reverse('news:home')
     response = client.get(url)
     object_list = response.context['object_list']
@@ -13,8 +12,7 @@ def test_news_count(client, all_news):
     assert news_count == settings.NEWS_COUNT_ON_HOME_PAGE
 
 
-@pytest.mark.django_db
-def test_news_order(client, all_news):
+def test_news_order(client):
     url = reverse('news:home')
     response = client.get(url)
     object_list = response.context['object_list']
@@ -23,8 +21,7 @@ def test_news_order(client, all_news):
     assert all_dates == sorted_dates
 
 
-@pytest.mark.django_db
-def test_comments_order(client, news, all_comment):
+def test_comments_order(client, news):
     url = reverse('news:detail', args=(news.id,))
     response = client.get(url)
     news = response.context['news']
@@ -32,12 +29,11 @@ def test_comments_order(client, news, all_comment):
     assert all_comments[0].created < all_comments[1].created
 
 
-@pytest.mark.django_db
 @pytest.mark.parametrize(
     'parametrized_client, form_in_list',
     (
-        (pytest.lazy_fixture('admin_client'), True),
-        (pytest.lazy_fixture('client'), False)
+        (pytest.lazy_fixture('admin_client'), 1),
+        (pytest.lazy_fixture('client'), 0)
     ),
 )
 def test_has_no_form(parametrized_client, news, form_in_list):
