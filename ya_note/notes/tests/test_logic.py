@@ -3,17 +3,18 @@ from http import HTTPStatus
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
+from pytils.translit import slugify
 
 from notes.forms import WARNING
 from notes.models import Note
-from pytils.translit import slugify
 
 User = get_user_model()
+NOTE_TEXT = 'Текст заметки'
+URL_DONE = 'notes:success'
 
 
 class TestContent(TestCase):
 
-    NOTE_TEXT = 'Текст заметки'
     NOTE_SLUG = 'newslug'
 
     @classmethod
@@ -33,14 +34,17 @@ class TestContent(TestCase):
         notes_count = Note.objects.count()
         self.assertEqual(notes_count, 0)
 
-    def test_authorized_user_cant_create_note(self):
+    def test_authorized_user_can_create_note(self):
         self.auth_client.post(self.url, data=self.form_data)
         notes_count = Note.objects.count()
         self.assertEqual(notes_count, 1)
+        new_note = Note.objects.last()
+        self.assertEqual(new_note.title, self.form_data['title'])
+        self.assertEqual(new_note.text, self.form_data['text'])
+        self.assertEqual(new_note.slug, self.form_data['slug'])
 
     def test_not_unique_slug(self):
         self.auth_client.post(self.url, data=self.form_data)
-        # Создаем вторую заметку с таким же slug
         response = self.auth_client.post(self.url, data=self.form_data)
         self.assertFormError(
             response,
@@ -54,17 +58,16 @@ class TestContent(TestCase):
     def test_empty_slug(self):
         self.form_data.pop('slug')
         response = self.auth_client.post(self.url, data=self.form_data)
-        self.assertRedirects(response, reverse('notes:success'))
+        self.assertRedirects(response, reverse(URL_DONE))
         notes_count = Note.objects.count()
         self.assertEqual(notes_count, 1)
-        new_note = Note.objects.get()
+        new_note = Note.objects.last()
         expected_slug = slugify(self.form_data['title'])
         self.assertEqual(new_note.slug, expected_slug)
 
 
 class TestContentEditDelete(TestCase):
 
-    NOTE_TEXT = 'Текст заметки'
     NOTE_SLUG = 'newslug'
 
     @classmethod
@@ -89,7 +92,7 @@ class TestContentEditDelete(TestCase):
     def test_author_can_edit_note(self):
         url = reverse('notes:edit', args=(self.note.slug,))
         response = self.author_client.post(url, self.form_data)
-        self.assertRedirects(response, reverse('notes:success'))
+        self.assertRedirects(response, reverse(URL_DONE))
         self.note.refresh_from_db()
         self.assertEqual(self.note.title, self.form_data['title'])
         self.assertEqual(self.note.text, self.form_data['text'])
@@ -107,7 +110,7 @@ class TestContentEditDelete(TestCase):
     def test_author_can_delete_note(self):
         url = reverse('notes:delete', args=(self.note.slug,))
         response = self.author_client.post(url)
-        self.assertRedirects(response, reverse('notes:success'))
+        self.assertRedirects(response, reverse(URL_DONE))
         self.assertEqual(Note.objects.count(), 0)
 
     def test_other_user_cant_delete_note(self):

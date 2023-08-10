@@ -21,11 +21,6 @@ class TestRoutes(TestCase):
             slug='newnote',
             author=cls.author)
 
-    def test_home_page(self):
-        url = reverse('notes:home')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
     def test_pages_availability_anonim(self):
         for name in (
             'notes:home',
