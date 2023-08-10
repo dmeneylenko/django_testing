@@ -25,10 +25,6 @@ class TestContent(TestCase):
             slug='newnote',
             author=cls.author,
         )
-        # было замечание author=cls.author Лишняя строка. Автор
-        # добавляется из запроса логикой описанной во вью.
-        # при удалении данной строки выпадает ошибка теста
-        # NOT NULL constraint failed: notes_note.author_id
 
     def test_notes_list_in_object_list(self):
         url = reverse(self.LIST_URL)

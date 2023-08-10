@@ -31,7 +31,7 @@ def test_comments_order(client, news, all_comment):
     news = response.context['news']
     all_comments = news.comment_set.all()
     all_comments_dates = [comment.created for comment in all_comments]
-    sorted_dates = sorted(all_comments_dates, reverse=False)
+    sorted_dates = sorted(all_comments_dates)
     assert all_comments_dates == sorted_dates
 
 
@@ -47,5 +47,5 @@ def test_has_no_form(parametrized_client, news, form_in_list):
     url = reverse('news:detail', args=(news.id,))
     response = parametrized_client.get(url)
     assert ('form' in response.context) is form_in_list
-    if form_in_list is True:
+    if form_in_list:
         assert isinstance(response.context['form'], CommentForm)

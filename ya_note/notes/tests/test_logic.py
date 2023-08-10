@@ -82,7 +82,8 @@ class TestContentEditDelete(TestCase):
             title='Заголовок',
             text='Текст',
             slug='newnote',
-            author=cls.author)
+            author=cls.author
+        )
         cls.form_data = {
             'title': 'Новый заголовок',
             'text': 'Новый текст',
